@@ -53,6 +53,9 @@ export default function Index() {
                     <Text style={styles.addButtonText}>Add Expense</Text>
                 </Pressable>
             </Link>
+            <Pressable style={styles.debtsButton} onPress={() => router.push('/debts')}>
+                <Text style={styles.debtsButtonText}>View Debts</Text>
+            </Pressable>
         </View>
     )
 }
@@ -111,6 +114,19 @@ const styles = StyleSheet.create({
 
     addButtonText: {
         color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    debtsButton: {
+        marginTop: 12,
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#000',
+        alignItems: 'center',
+    },
+
+    debtsButtonText: {
         fontSize: 16,
         fontWeight: '600',
     },

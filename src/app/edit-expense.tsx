@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
 
     saveButton: {
         marginTop: 32,
-        marginBottom: 40,
+        marginBottom: 20,
     },
     totalRow: {
         flexDirection: 'row',
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     deleteButton: {
-        marginTop: 16,
+        marginTop: 0,
         marginBottom: 40,
     },
 })
