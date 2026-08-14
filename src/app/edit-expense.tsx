@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useRef, useState } from 'react'
 import { Alert, Button, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 
+import ShareAdjustment from '@/components/ShareAdjustment'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import { PEOPLE } from '../data/people'
 import { useExpenses } from '../store/ExpenseContext'
@@ -31,8 +32,6 @@ export default function AddExpense() {
 
     const titleInputRef = useRef<TextInput>(null)
     const shareInputRefs = useRef<(TextInput | null)[]>([])
-
-    const { addExpense } = useExpenses()
 
     const updateShare = (personId: string, value: string) => {
         setShares((current) => ({
@@ -141,6 +140,7 @@ export default function AddExpense() {
                     />
                 </View>
             ))}
+            <ShareAdjustment shares={shares} onChange={setShares} />
 
             <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>Total</Text>

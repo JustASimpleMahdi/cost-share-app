@@ -4,6 +4,6 @@ export const PEOPLE: Person[] = [
     { id: 'ali', name: 'Ali' },
     { id: 'mahdi', name: 'Mahdi' },
     { id: 'iman', name: 'Iman' },
-    { id: 'kourosh', name: 'Kourosh' },
+    { id: 'koroosh', name: 'Koroosh' },
     { id: 'ramin', name: 'Ramin' },
 ]

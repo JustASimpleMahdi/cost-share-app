@@ -1,3 +1,4 @@
+import ShareAdjustment from '@/components/ShareAdjustment'
 import { router } from 'expo-router'
 import { useRef, useState } from 'react'
 import { Button, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
@@ -111,6 +112,8 @@ export default function AddExpense() {
                     />
                 </View>
             ))}
+
+            <ShareAdjustment shares={shares} onChange={setShares} />
 
             <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>Total</Text>
