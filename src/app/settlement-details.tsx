@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useLocalSearchParams } from 'expo-router'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import ScreenHeader from '@/components/ScreenHeader'
 import { PEOPLE } from '../data/people'
 import { useExpenses } from '../store/ExpenseContext'
 
@@ -52,6 +53,8 @@ export default function SettlementDetails() {
 
     return (
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+            <ScreenHeader title="" />
+
             <View style={styles.header}>
                 <Ionicons name="checkmark-circle" size={44} color="#111" />
 
@@ -144,7 +147,7 @@ export default function SettlementDetails() {
 const styles = StyleSheet.create({
     container: {
         padding: 20,
-        paddingTop: 60,
+        paddingTop: 40,
         paddingBottom: 50,
         backgroundColor: '#f7f7f7',
     },

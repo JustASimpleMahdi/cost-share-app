@@ -1,5 +1,6 @@
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import ScreenHeader from '@/components/ScreenHeader'
 import type { Cost } from '@/types/Cost'
 import type { Person } from '@/types/Person'
 import { Ionicons } from '@expo/vector-icons'
@@ -179,7 +180,7 @@ export default function Debts() {
 
     return (
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-            <Text style={styles.title}>Debts</Text>
+            <ScreenHeader title="Debts" />
 
             <Text style={styles.sectionDescription}>
                 See how everyone's balance is calculated from the current expenses.
@@ -336,9 +337,12 @@ export default function Debts() {
 const styles = StyleSheet.create({
     container: {
         padding: 20,
-        paddingTop: 60,
+        paddingTop: 40,
         paddingBottom: 40,
         backgroundColor: '#f7f7f7',
+    },
+    header: {
+        marginBottom: 24,
     },
 
     title: {

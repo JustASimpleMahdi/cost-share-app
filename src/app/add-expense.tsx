@@ -1,3 +1,4 @@
+import ScreenHeader from '@/components/ScreenHeader'
 import ShareAdjustment from '@/components/ShareAdjustment'
 import { router } from 'expo-router'
 import { useRef, useState } from 'react'
@@ -50,7 +51,7 @@ export default function AddExpense() {
 
     return (
         <KeyboardAwareScrollView bottomOffset={50} contentContainerStyle={styles.container}>
-            <Text style={styles.title}>Add Expense</Text>
+            <ScreenHeader title="Add Expense" />
 
             <Text style={styles.label}>Title</Text>
             <TextInput
@@ -132,7 +133,7 @@ export default function AddExpense() {
 const styles = StyleSheet.create({
     container: {
         padding: 24,
-        paddingTop: 60,
+        paddingTop: 40,
     },
 
     title: {

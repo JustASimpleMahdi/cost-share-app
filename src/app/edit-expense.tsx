@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useRef, useState } from 'react'
 import { Alert, Button, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 
+import ScreenHeader from '@/components/ScreenHeader'
 import ShareAdjustment from '@/components/ShareAdjustment'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import { PEOPLE } from '../data/people'
@@ -81,7 +82,7 @@ export default function AddExpense() {
 
     return (
         <KeyboardAwareScrollView bottomOffset={50} contentContainerStyle={styles.container}>
-            <Text style={styles.title}>Add Expense</Text>
+            <ScreenHeader title="Edit Expense" />
 
             <Text style={styles.label}>Title</Text>
             <TextInput
@@ -161,7 +162,7 @@ export default function AddExpense() {
 const styles = StyleSheet.create({
     container: {
         padding: 24,
-        paddingTop: 60,
+        paddingTop: 40,
     },
 
     title: {
