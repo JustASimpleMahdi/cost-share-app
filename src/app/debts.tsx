@@ -164,7 +164,14 @@ export default function Debts() {
                 {
                     text: 'Settle',
                     style: 'destructive',
-                    onPress: settleExpenses,
+                    onPress: () =>
+                        settleExpenses(
+                            actions.map((action) => ({
+                                from: action.from.id,
+                                to: action.to.id,
+                                amount: action.amount,
+                            })),
+                        ),
                 },
             ],
         )

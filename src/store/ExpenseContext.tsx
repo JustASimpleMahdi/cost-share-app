@@ -1,30 +1,41 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
+import type { SettlementBatch, SettlementPayment } from '../../types/SettlementBatch'
 import { Cost } from '../types/Cost'
 
 const EXPENSES_STORAGE_KEY = 'expenses'
+const SETTLEMENT_BATCHES_STORAGE_KEY = 'settlement_batches'
 
 type ExpenseContextType = {
     expenses: Cost[]
+    settlementBatches: SettlementBatch[]
     addExpense: (expense: Cost) => Promise<void>
     updateExpense: (expense: Cost) => Promise<void>
     deleteExpense: (id: string) => Promise<void>
-    settleExpenses: () => Promise<void>
+    settleExpenses: (payments: SettlementPayment[]) => Promise<void>
 }
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined)
 
 export function ExpenseProvider({ children }: { children: ReactNode }) {
     const [expenses, setExpenses] = useState<Cost[]>([])
+    const [settlementBatches, setSettlementBatches] = useState<SettlementBatch[]>([])
     const [loaded, setLoaded] = useState(false)
 
     useEffect(() => {
-        const loadExpenses = async () => {
+        const loadData = async () => {
             try {
-                const storedExpenses = await AsyncStorage.getItem(EXPENSES_STORAGE_KEY)
+                const [storedExpenses, storedSettlementBatches] = await Promise.all([
+                    AsyncStorage.getItem(EXPENSES_STORAGE_KEY),
+                    AsyncStorage.getItem(SETTLEMENT_BATCHES_STORAGE_KEY),
+                ])
 
                 if (storedExpenses) {
                     setExpenses(JSON.parse(storedExpenses))
+                }
+
+                if (storedSettlementBatches) {
+                    setSettlementBatches(JSON.parse(storedSettlementBatches))
                 }
             } catch (error) {
                 console.error('Failed to load expenses:', error)
@@ -33,7 +44,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
             }
         }
 
-        loadExpenses()
+        loadData()
     }, [])
 
     const addExpense = async (expense: Cost) => {
@@ -71,16 +82,43 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
             console.error('Failed to delete expense:', error)
         }
     }
-    const settleExpenses = async () => {
-        const updatedExpenses = expenses.map((expense) => ({
-            ...expense,
-            settled: true,
-        }))
+    const settleExpenses = async (payments: SettlementPayment[]) => {
+        const currentExpenses = expenses.filter((expense) => !expense.settled)
+
+        if (currentExpenses.length === 0) {
+            return
+        }
+
+        const batch: SettlementBatch = {
+            id: Date.now().toString(),
+            createdAt: new Date().toISOString(),
+            expenseIds: currentExpenses.map((expense) => expense.id),
+            payments,
+        }
+
+        const updatedBatches = [...settlementBatches, batch]
+
+        const updatedExpenses = expenses.map((expense) =>
+            expense.settled
+                ? expense
+                : {
+                      ...expense,
+                      settled: true,
+                      settlementBatchId: batch.id,
+                  },
+        )
 
         setExpenses(updatedExpenses)
+        setSettlementBatches(updatedBatches)
 
         try {
-            await AsyncStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(updatedExpenses))
+            await Promise.all([
+                AsyncStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(updatedExpenses)),
+                AsyncStorage.setItem(
+                    SETTLEMENT_BATCHES_STORAGE_KEY,
+                    JSON.stringify(updatedBatches),
+                ),
+            ])
         } catch (error) {
             console.error('Failed to settle expenses:', error)
         }
@@ -94,6 +132,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
         <ExpenseContext.Provider
             value={{
                 expenses,
+                settlementBatches,
                 addExpense,
                 updateExpense,
                 deleteExpense,

@@ -1,70 +1,109 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { router } from 'expo-router'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
-import type { Cost } from '@/types/Cost'
-import { PEOPLE } from '../../data/people'
 import { useExpenses } from '../../store/ExpenseContext'
 
 export default function History() {
-    const { expenses } = useExpenses()
+    const { expenses, settlementBatches } = useExpenses()
 
-    const settledExpenses = expenses.filter((expense) => expense.settled)
-
-    const getPersonName = (personId: string) => {
-        return PEOPLE.find((person) => person.id === personId)?.name ?? personId
+    const getBatchExpenses = (expenseIds: string[]) => {
+        return expenses.filter((expense) => expenseIds.includes(expense.id))
     }
 
-    const getTotal = (expense: Cost) => {
-        return Object.values(expense.shares).reduce((sum, share) => sum + share, 0)
+    const getExpenseTotal = (expenseIds: string[]) => {
+        return getBatchExpenses(expenseIds).reduce((total, expense) => {
+            return total + Object.values(expense.shares).reduce((sum, share) => sum + share, 0)
+        }, 0)
+    }
+
+    const formatDate = (date: string) => {
+        return new Date(date).toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        })
     }
 
     return (
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
             <View style={styles.header}>
                 <Text style={styles.title}>History</Text>
 
-                {settledExpenses.length > 0 && (
+                {settlementBatches.length > 0 && (
                     <Text style={styles.subtitle}>
-                        {settledExpenses.length}{' '}
-                        {settledExpenses.length === 1 ? 'expense' : 'expenses'}
+                        {settlementBatches.length}{' '}
+                        {settlementBatches.length === 1 ? 'settlement' : 'settlements'}
                     </Text>
                 )}
             </View>
 
-            {settledExpenses.length === 0 ? (
+            {settlementBatches.length === 0 ? (
                 <View style={styles.emptyState}>
+                    <Text style={styles.emptyIcon}>✓</Text>
+
                     <Text style={styles.emptyTitle}>No history</Text>
 
-                    <Text style={styles.emptySubtitle}>Settled expenses will appear here.</Text>
+                    <Text style={styles.emptySubtitle}>
+                        Your completed settlements will appear here.
+                    </Text>
                 </View>
             ) : (
-                <View style={styles.expenses}>
-                    {settledExpenses.map((expense) => (
-                        <View key={expense.id} style={styles.expense}>
-                            <View style={styles.expenseInfo}>
-                                <Text style={styles.expenseTitle}>{expense.title}</Text>
+                <View style={styles.batches}>
+                    {[...settlementBatches].reverse().map((batch) => {
+                        const batchExpenses = getBatchExpenses(batch.expenseIds)
 
-                                <Text style={styles.expensePaidBy}>
-                                    Paid by {getPersonName(expense.paidBy)}
-                                </Text>
-                            </View>
+                        const total = getExpenseTotal(batch.expenseIds)
 
-                            <Text style={styles.expenseAmount}>
-                                {getTotal(expense).toLocaleString()}
-                            </Text>
-                        </View>
-                    ))}
+                        return (
+                            <Pressable
+                                key={batch.id}
+                                style={({ pressed }) => [
+                                    styles.batch,
+                                    pressed && styles.batchPressed,
+                                ]}
+                                onPress={() =>
+                                    router.push({
+                                        pathname: '/settlement-details',
+                                        params: {
+                                            id: batch.id,
+                                        },
+                                    })
+                                }
+                            >
+                                <View style={styles.batchMain}>
+                                    <Text style={styles.batchDate}>
+                                        {formatDate(batch.createdAt)}
+                                    </Text>
+
+                                    <Text style={styles.batchInfo}>
+                                        {batchExpenses.length}{' '}
+                                        {batchExpenses.length === 1 ? 'expense' : 'expenses'} ·{' '}
+                                        {batch.payments.length}{' '}
+                                        {batch.payments.length === 1 ? 'payment' : 'payments'}
+                                    </Text>
+                                </View>
+
+                                <View style={styles.batchRight}>
+                                    <Text style={styles.batchTotal}>{total.toLocaleString()}</Text>
+
+                                    <Text style={styles.chevron}>›</Text>
+                                </View>
+                            </Pressable>
+                        )
+                    })}
                 </View>
             )}
-        </View>
+        </ScrollView>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#f7f7f7',
-        paddingHorizontal: 20,
+        flexGrow: 1,
+        padding: 20,
         paddingTop: 60,
+        paddingBottom: 40,
+        backgroundColor: '#f7f7f7',
     },
 
     header: {
@@ -83,53 +122,68 @@ const styles = StyleSheet.create({
         color: '#777',
     },
 
-    expenses: {
+    batches: {
         gap: 10,
     },
 
-    expense: {
+    batch: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: '#fff',
         padding: 18,
         borderRadius: 16,
+        backgroundColor: '#fff',
         borderWidth: 1,
         borderColor: '#e9e9e9',
     },
 
-    expensePressed: {
+    batchPressed: {
         opacity: 0.7,
     },
 
-    expenseInfo: {
+    batchMain: {
         flex: 1,
     },
 
-    expenseTitle: {
+    batchDate: {
         fontSize: 17,
         fontWeight: '600',
         color: '#111',
     },
 
-    expensePaidBy: {
+    batchInfo: {
         marginTop: 5,
         fontSize: 13,
         color: '#888',
     },
 
-    expenseAmount: {
-        marginLeft: 16,
+    batchRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+
+    batchTotal: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#555',
+        color: '#111',
+    },
+
+    chevron: {
+        fontSize: 24,
+        color: '#999',
     },
 
     emptyState: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingBottom: 80,
+        paddingVertical: 80,
+    },
+
+    emptyIcon: {
+        fontSize: 32,
+        marginBottom: 12,
     },
 
     emptyTitle: {
@@ -140,8 +194,10 @@ const styles = StyleSheet.create({
 
     emptySubtitle: {
         marginTop: 8,
+        maxWidth: 280,
         fontSize: 14,
-        color: '#777',
+        lineHeight: 20,
         textAlign: 'center',
+        color: '#777',
     },
 })

@@ -4,4 +4,5 @@ export type Cost = {
     paidBy: string
     shares: Record<string, number>
     settled: boolean
+    settlementBatchId?: string
 }
