@@ -40,6 +40,7 @@ export default function Debts() {
                     return
                 }
             }
+            arr.push({ ...balance, balance: balance.balance })
         }
         const recursion = () => {
             if (balances.length < 2) return
