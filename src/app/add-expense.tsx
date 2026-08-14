@@ -100,6 +100,7 @@ export default function AddExpense() {
                         value={shares[person.id]}
                         onChangeText={(value) => updateShare(person.id, value)}
                         keyboardType="decimal-pad"
+                        selectTextOnFocus
                         returnKeyType={index === PEOPLE.length - 1 ? 'done' : 'next'}
                         submitBehavior={index === PEOPLE.length - 1 ? 'blurAndSubmit' : 'submit'}
                         onSubmitEditing={() => {
