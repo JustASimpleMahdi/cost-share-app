@@ -1,5 +1,5 @@
-import { Link, router } from 'expo-router'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { router } from 'expo-router'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import type { Cost } from '@/types/Cost'
 import { PEOPLE } from '../../data/people'
@@ -46,7 +46,11 @@ export default function Index() {
                     </Text>
                 </View>
             ) : (
-                <View style={styles.expenses}>
+                <ScrollView
+                    style={styles.expensesScroll}
+                    contentContainerStyle={styles.expenses}
+                    showsVerticalScrollIndicator={false}
+                >
                     {currentExpenses.map((expense) => (
                         <Pressable
                             key={expense.id}
@@ -76,17 +80,16 @@ export default function Index() {
                             </Text>
                         </Pressable>
                     ))}
-                </View>
+                </ScrollView>
             )}
 
             <View style={styles.actions}>
-                <Link href="/add-expense" asChild>
-                    <Pressable
-                        style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}
-                    >
-                        <Text style={styles.addButtonText}>Add Expense</Text>
-                    </Pressable>
-                </Link>
+                <Pressable
+                    style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}
+                    onPress={() => router.push('/add-expense')}
+                >
+                    <Text style={styles.addButtonText}>Add Expense</Text>
+                </Pressable>
 
                 {currentExpenses.length > 0 && (
                     <Pressable
@@ -128,8 +131,13 @@ const styles = StyleSheet.create({
         color: '#777',
     },
 
+    expensesScroll: {
+        flex: 1,
+    },
+
     expenses: {
         gap: 10,
+        paddingBottom: 16,
     },
 
     expense: {
@@ -171,8 +179,8 @@ const styles = StyleSheet.create({
     },
 
     actions: {
-        marginTop: 'auto',
-        paddingBottom: 100,
+        marginTop: 24,
+        paddingBottom: 80,
         gap: 10,
     },
 

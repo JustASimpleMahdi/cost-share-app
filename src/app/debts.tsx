@@ -111,8 +111,6 @@ export default function Debts() {
 
             {actions.length > 0 ? (
                 <>
-                    <Text style={styles.sectionTitle}>Payments</Text>
-
                     {actions.map((action, index) => (
                         <View key={action.from.id + action.to.id + index} style={styles.action}>
                             <Text style={styles.fromName}>{action.from.name}</Text>

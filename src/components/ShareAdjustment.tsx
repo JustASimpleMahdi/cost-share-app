@@ -18,7 +18,9 @@ type Props = {
 export default function ShareAdjustment({ shares, onChange }: Props) {
     const bottomSheetRef = useRef<BottomSheetModal>(null)
     const [amount, setAmount] = useState('')
-    const [selectedPeople, setSelectedPeople] = useState<string[]>([])
+    const [selectedPeople, setSelectedPeople] = useState<string[]>(
+        PEOPLE.map((person) => person.id),
+    )
     const [operation, setOperation] = useState<'add' | 'subtract'>('add')
 
     const openSheet = () => {
