@@ -1,7 +1,13 @@
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
+import {
+    BottomSheetBackdrop,
+    BottomSheetModal,
+    BottomSheetTextInput,
+    BottomSheetView,
+} from '@gorhom/bottom-sheet'
 import { useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
+import { Parser } from 'expr-eval'
 import { PEOPLE } from '../data/people'
 
 type Props = {
@@ -32,9 +38,19 @@ export default function ShareAdjustment({ shares, onChange }: Props) {
     }
 
     const applyAdjustment = () => {
-        const adjustment = Number(amount)
+        if (!amount.trim() || selectedPeople.length === 0) {
+            return
+        }
 
-        if (!adjustment || selectedPeople.length === 0) {
+        let adjustment: number
+
+        try {
+            adjustment = Parser.evaluate(amount)
+
+            if (!Number.isFinite(adjustment) || adjustment <= 0) {
+                return
+            }
+        } catch {
             return
         }
 
@@ -66,6 +82,8 @@ export default function ShareAdjustment({ shares, onChange }: Props) {
                 ref={bottomSheetRef}
                 snapPoints={['60%']}
                 enablePanDownToClose
+                keyboardBehavior="interactive"
+                keyboardBlurBehavior="restore"
                 backdropComponent={(props) => (
                     <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} />
                 )}
@@ -109,12 +127,12 @@ export default function ShareAdjustment({ shares, onChange }: Props) {
                         </Pressable>
                     </View>
 
-                    <TextInput
+                    <BottomSheetTextInput
                         style={styles.amountInput}
                         value={amount}
                         onChangeText={setAmount}
-                        keyboardType="decimal-pad"
-                        placeholder="Amount"
+                        keyboardType="numbers-and-punctuation"
+                        placeholder="Amount or expression"
                     />
 
                     <Text style={styles.label}>Select people</Text>
