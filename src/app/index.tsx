@@ -1,98 +1,117 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Link } from 'expo-router'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import type { Cost } from '@/types/Cost'
+import { router } from 'expo-router'
+import { PEOPLE } from '../data/people'
+import { useExpenses } from '../store/ExpenseContext'
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
+export default function Index() {
+    const { expenses } = useExpenses()
+
+    const getPersonName = (personId: string) => {
+        return PEOPLE.find((person) => person.id === personId)?.name ?? personId
+    }
+    const getTotal = (expense: Cost) => {
+        return Object.values(expense.shares).reduce((sum, share) => sum + share, 0)
+    }
     return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+        <View style={styles.container}>
+            <Text style={styles.title}>Expenses</Text>
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+            {expenses.length === 0 ? (
+                <Text style={styles.emptyText}>No expenses yet.</Text>
+            ) : (
+                expenses.map((expense) => (
+                    <Pressable
+                        key={expense.id}
+                        style={styles.expense}
+                        onPress={() =>
+                            router.push({
+                                pathname: '/edit-expense',
+                                params: {
+                                    id: expense.id,
+                                },
+                            })
+                        }
+                    >
+                        <View>
+                            <Text style={styles.expenseTitle}>{expense.title}</Text>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+                            <Text style={styles.expensePaidBy}>
+                                Paid by {getPersonName(expense.paidBy)}
+                            </Text>
+                        </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+                        <Text style={styles.expenseAmount}>{getTotal(expense)}</Text>
+                    </Pressable>
+                ))
+            )}
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
+            <Link href="/add-expense" asChild>
+                <Pressable style={styles.addButton}>
+                    <Text style={styles.addButtonText}>Add Expense</Text>
+                </Pressable>
+            </Link>
+        </View>
+    )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
+    container: {
+        flex: 1,
+        padding: 24,
+        paddingTop: 60,
+    },
+
+    title: {
+        fontSize: 32,
+        fontWeight: '700',
+        marginBottom: 24,
+    },
+
+    emptyText: {
+        fontSize: 16,
+        color: '#666',
+    },
+
+    expense: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 12,
+    },
+
+    expenseTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+    },
+
+    expensePaidBy: {
+        marginTop: 4,
+        color: '#666',
+    },
+
+    expenseAmount: {
+        fontSize: 18,
+        fontWeight: '600',
+    },
+
+    addButton: {
+        marginTop: 20,
+        padding: 16,
+        borderRadius: 12,
+        backgroundColor: '#000',
+        alignItems: 'center',
+    },
+
+    addButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+})
