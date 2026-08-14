@@ -11,7 +11,14 @@ export default function Layout() {
             <BottomSheetModalProvider>
                 <KeyboardProvider>
                     <ExpenseProvider>
-                        <Stack />
+                        <Stack>
+                            <Stack.Screen
+                                name="(tabs)"
+                                options={{
+                                    headerShown: false,
+                                }}
+                            />
+                        </Stack>
                     </ExpenseProvider>
                 </KeyboardProvider>
             </BottomSheetModalProvider>

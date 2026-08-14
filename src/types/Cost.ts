@@ -3,4 +3,5 @@ export type Cost = {
     title: string
     paidBy: string
     shares: Record<string, number>
+    settled: boolean
 }

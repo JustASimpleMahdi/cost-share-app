@@ -10,6 +10,7 @@ type ExpenseContextType = {
     addExpense: (expense: Cost) => Promise<void>
     updateExpense: (expense: Cost) => Promise<void>
     deleteExpense: (id: string) => Promise<void>
+    settleExpenses: () => Promise<void>
 }
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined)
 
@@ -70,6 +71,20 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
             console.error('Failed to delete expense:', error)
         }
     }
+    const settleExpenses = async () => {
+        const updatedExpenses = expenses.map((expense) => ({
+            ...expense,
+            settled: true,
+        }))
+
+        setExpenses(updatedExpenses)
+
+        try {
+            await AsyncStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(updatedExpenses))
+        } catch (error) {
+            console.error('Failed to settle expenses:', error)
+        }
+    }
 
     if (!loaded) {
         return null
@@ -82,6 +97,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
                 addExpense,
                 updateExpense,
                 deleteExpense,
+                settleExpenses,
             }}
         >
             {children}

@@ -1,27 +1,31 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import type { Person } from '@/types/Person'
 import { PEOPLE } from '../data/people'
 import { useExpenses } from '../store/ExpenseContext'
 
 export default function Debts() {
-    const { expenses } = useExpenses()
+    const { expenses, settleExpenses } = useExpenses()
 
     const balances: Balance[] = PEOPLE.map((person) => ({ person, balance: 0 }))
 
-    expenses.forEach((expense) => {
-        const total = Object.values(expense.shares).reduce((sum, share) => sum + share, 0)
+    expenses
+        .filter((expense) => !expense.settled)
+        .forEach((expense) => {
+            const total = Object.values(expense.shares).reduce((sum, share) => sum + share, 0)
 
-        // The person who paid gets credit for the whole expense.
-        balances.find((b) => b.person.id === expense.paidBy)!.balance += total
+            // The person who paid gets credit for the whole expense.
+            balances.find((b) => b.person.id === expense.paidBy)!.balance += total
 
-        // Everyone owes their own share.
-        Object.entries(expense.shares).forEach(([personId, share]) => {
-            balances.find((b) => b.person.id === personId)!.balance -= share
+            // Everyone owes their own share.
+            Object.entries(expense.shares).forEach(([personId, share]) => {
+                balances.find((b) => b.person.id === personId)!.balance -= share
+            })
         })
-    })
 
-    const actions = calculatePayments([...balances].sort((a, b) => b.balance - a.balance))
+    const actions = calculatePayments(
+        balances.filter((balance) => balance.balance !== 0).sort((a, b) => b.balance - a.balance),
+    )
     type Balance = {
         person: Person
         balance: number
@@ -38,31 +42,31 @@ export default function Debts() {
             }
         }
         const recursion = () => {
-            if (!balances.length) return
+            if (balances.length < 2) return
 
-            const greatest = balances.shift()
-            const smallest = balances.pop()
+            const greatest = balances.shift()!
+            const smallest = balances.pop()!
 
-            const newBalance = greatest!.balance + smallest!.balance
+            const newBalance = greatest.balance + smallest.balance
             if (newBalance > 0) {
                 actions.push({
-                    from: smallest!.person,
-                    to: greatest!.person,
-                    amount: Math.abs(smallest!.balance),
+                    from: smallest.person,
+                    to: greatest.person,
+                    amount: Math.abs(smallest.balance),
                 })
-                pushSorted(balances, { ...greatest!, balance: newBalance })
+                pushSorted(balances, { ...greatest, balance: newBalance })
             } else if (newBalance < 0) {
                 actions.push({
-                    from: smallest!.person,
-                    to: greatest!.person,
-                    amount: Math.abs(greatest!.balance),
+                    from: smallest.person,
+                    to: greatest.person,
+                    amount: Math.abs(greatest.balance),
                 })
-                pushSorted(balances, { ...smallest!, balance: newBalance })
+                pushSorted(balances, { ...smallest, balance: newBalance })
             } else {
                 actions.push({
-                    from: smallest!.person,
-                    to: greatest!.person,
-                    amount: Math.abs(smallest!.balance),
+                    from: smallest.person,
+                    to: greatest.person,
+                    amount: Math.abs(smallest.balance),
                 })
             }
 
@@ -70,6 +74,23 @@ export default function Debts() {
         }
         recursion()
         return actions
+    }
+    const handleSettle = () => {
+        Alert.alert(
+            'Settle debts',
+            'Are you sure? Current expenses will no longer be included in debt calculations.',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Settle',
+                    style: 'destructive',
+                    onPress: settleExpenses,
+                },
+            ],
+        )
     }
     return (
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -88,19 +109,37 @@ export default function Debts() {
             })}
             <Text style={styles.sectionTitle}>Payments</Text>
 
-            {actions.map((action, index) => (
-                <View key={action.from.id + action.to.id + index} style={styles.action}>
-                    <Text style={styles.fromName}>{action.from.name}</Text>
+            {actions.length > 0 ? (
+                <>
+                    <Text style={styles.sectionTitle}>Payments</Text>
 
-                    <View style={styles.arrowContainer}>
-                        <Text style={styles.arrow}>→</Text>
-                    </View>
+                    {actions.map((action, index) => (
+                        <View key={action.from.id + action.to.id + index} style={styles.action}>
+                            <Text style={styles.fromName}>{action.from.name}</Text>
 
-                    <Text style={styles.toName}>{action.to.name}</Text>
+                            <View style={styles.arrowContainer}>
+                                <Text style={styles.arrow}>→</Text>
+                            </View>
 
-                    <Text style={styles.actionAmount}>{action.amount}</Text>
+                            <Text style={styles.toName}>{action.to.name}</Text>
+
+                            <Text style={styles.actionAmount}>{action.amount}</Text>
+                        </View>
+                    ))}
+
+                    <Pressable style={styles.settleButton} onPress={handleSettle}>
+                        <Text style={styles.settleButtonText}>Settle debts</Text>
+                    </Pressable>
+                </>
+            ) : (
+                <View style={styles.noDebts}>
+                    <Text style={styles.noDebtsIcon}>✓</Text>
+
+                    <Text style={styles.noDebtsTitle}>No debts</Text>
+
+                    <Text style={styles.noDebtsText}>Everyone is settled up.</Text>
                 </View>
-            ))}
+            )}
         </ScrollView>
     )
 }
@@ -180,5 +219,38 @@ const styles = StyleSheet.create({
         textAlign: 'right',
         fontSize: 17,
         fontWeight: '700',
+    },
+    settleButton: {
+        marginTop: 24,
+        paddingVertical: 14,
+        borderRadius: 10,
+        backgroundColor: '#000',
+        alignItems: 'center',
+    },
+
+    settleButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    noDebts: {
+        alignItems: 'center',
+        paddingVertical: 40,
+    },
+
+    noDebtsIcon: {
+        fontSize: 32,
+        marginBottom: 10,
+    },
+
+    noDebtsTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+    },
+
+    noDebtsText: {
+        marginTop: 6,
+        fontSize: 14,
+        color: '#777',
     },
 })

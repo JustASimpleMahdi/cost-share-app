@@ -38,6 +38,7 @@ export default function AddExpense() {
             shares: Object.fromEntries(
                 Object.entries(shares).map(([personId, value]) => [personId, Number(value)]),
             ),
+            settled: false,
         }
 
         await addExpense(expense)
